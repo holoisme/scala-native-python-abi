@@ -1,0 +1,4 @@
+project/project/
+target/
+python/example/__pycache__/
+python/example/*.so
