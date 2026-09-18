@@ -1,13 +1,14 @@
 import example
 
-print(example.add(1000, 0))
+print(example.add(100, 2))
 
 example.hello()
+
+print(example.first([11, 20, 30]))
 
 # Each GC does its own thing, and calls INCREF DECREF functions when the wrapper object is freed
 
 
-# print(example.first([10, 20, 30]))
 
 # class Person:
 #     def __init__(self, name):

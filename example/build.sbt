@@ -10,11 +10,11 @@ nativeConfig ~= { config =>
     .withBaseName("example")
 }
 
+libraryDependencies +=
+  "com.holo" %%% "scala-native-python-runtime" % "0.1.0"
+
 addCompilerPlugin(
-  "com.holo"
-    % "scala-native-python-abi-plugin"
-    % "0.1.0"
-    cross CrossVersion.full
+  "com.holo" % "scala-native-python-abi-plugin" % "0.1.0" cross CrossVersion.full
 )
 
 Compile / scalacOptions ++= {
@@ -22,7 +22,7 @@ Compile / scalacOptions ++= {
     (Compile / target).value / "python-abi"
 
   Seq(
-    s"-P:scalaNativePythonAbi:output:${output.getAbsolutePath}"
+    s"-P:scala-native-python-abi:output:${output.getAbsolutePath}"
   )
 }
 
@@ -42,7 +42,7 @@ packagePython := {
     (Compile / nativeLink).value
 
   val exports =
-    (Compile / target).value / "python-abi" / "exports.json"
+    (Compile / target).value / "python-abi" / "__init__.py"
 
   IO.createDirectory(packageDir)
 
@@ -55,7 +55,7 @@ packagePython := {
   )
 
   val exportsDestination =
-    packageDir / "exports.json"
+    packageDir / "__init__.py"
 
   IO.copyFile(
     exports,
