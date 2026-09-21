@@ -19,9 +19,9 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.compiletime.ops.boolean
 
-class PythonInitPhase(outputDirectory: String, functionsWithSiblings: ListBuffer[Symbol]) extends PluginPhase:
+import tpd.*
 
-  import tpd.*
+class PythonInitPhase(outputDirectory: String, exportedFunctions: ListBuffer[ExportedSiblingFunction]) extends PluginPhase:
 
   val phaseName: String = "python-init-phase"
 
@@ -48,16 +48,16 @@ class PythonInitPhase(outputDirectory: String, functionsWithSiblings: ListBuffer
 
       traverser.traverse(unit.tpdTree)
 
-    writeMetadata()
+    writeInit()
 
     units
 
   private def inspectDefDef(tree: DefDef)(using ctx: Context): Unit =
     val symbol = tree.symbol
 
-    println("")
-    println(tree.symbol.show)
-    println(tree.symbol.annotations.map(_.symbol.fullName))
+    // println("")
+    // println(tree.symbol.show)
+    // println(tree.symbol.annotations.map(_.symbol.fullName))
 
     val annotation =
       symbol.annotations.find { annotation =>
@@ -78,7 +78,9 @@ class PythonInitPhase(outputDirectory: String, functionsWithSiblings: ListBuffer
         return
       }
 
-    val hasSibling = functionsWithSiblings.contains(tree.symbol)
+    // val hasSibling = exportedFunctions.contains(tree.symbol)
+
+    // val 
 
     tree.symbol.info match
 
@@ -86,7 +88,7 @@ class PythonInitPhase(outputDirectory: String, functionsWithSiblings: ListBuffer
         val patametersName = tree.paramss.flatten.map(_.name.show)
         val params = patametersName.zip(methodType.paramInfos).map((name, ty) => FunctionParameter(name, ty))
 
-        functions += ExportedFunction(exportName, params, methodType.resultType, tree.rawComment, hasSibling)
+        functions += ExportedFunction(exportName, params, methodType.resultType, tree.rawComment, exportedFunctions.find(_.siblingSymbol eq tree.symbol))
 
       case polyType: PolyType =>
         report.error(
@@ -102,19 +104,13 @@ class PythonInitPhase(outputDirectory: String, functionsWithSiblings: ListBuffer
 
   private def extractExportName(tree: DefDef, annotation: Annotation)(using ctx: Context): Option[String] =
     annotation.tree match
-      case Apply(_, Nil) => Some(tree.name.show)
-      
       case Apply(_, List(Literal(constant))) =>
         constant.value match
-          case value: String =>
-            Some(value)
-          case _ =>
-            None
-      
-      case _ =>
-        None
+          case value: String => Some(value)
+          case _ => Some(tree.name.show)
+      case _ => Some(tree.name.show)
 
-  private def writeMetadata()(using ctx: Context): Unit =
+  private def writeInit()(using ctx: Context): Unit =
     val directory = Paths.get(outputDirectory)
     Files.createDirectories(directory)
 
@@ -124,39 +120,34 @@ class PythonInitPhase(outputDirectory: String, functionsWithSiblings: ListBuffer
     Files.writeString(file, loader, StandardCharsets.UTF_8)
 
   private def renderPythonLoader(functions: List[ExportedFunction])(using ctx: Context): String =
-
-    println("\nFunctions with siblings:")
-    println(functionsWithSiblings)
-    println("\n")
-
-    val libName = "_library"
+    val libName = "__lib"
 
     val functionEntries =
       functions.map { function =>
-        val hasSibling = function.hasSibling// functionsWithSiblings.contains(function.name)
-        val functionName = escape(function.name)
-        val calledFunction = if(hasSibling) s"""${functionName}_abi""" else functionName
+        val (functionName, calledFunction) = function.siblingModel match
+          case Some(value) => (escape(value.originalName), escape(value.siblingName))
+          case None => (escape(function.name), escape(function.name))
+
         val parameters = function.parameters.map(p => s"""${{TypeHelper.typeToAbi(p.tpe)}}""").mkString("[", ", ", "]")
 
         val comment = function.comment match
           case None => ""
-          case Some(s) => "\"\"\"\n  " + s.raw.linesIterator.map(s => " " + s.trim().stripPrefix("/**").stripPrefix("*/").stripPrefix("*")).mkString("\n").trim() + "\n  \"\"\"\n  " //.mkString("\"\"\"\n", "\n", "\n\"\"\"\n  ")
+          case Some(s) => "\"\"\"\n  " + s.raw.linesIterator.map(s => "  " + s.trim().stripPrefix("/**").stripPrefix("*/").stripPrefix("*").trim()).mkString("\n").trim() + "\n  \"\"\"\n  " //.mkString("\"\"\"\n", "\n", "\n\"\"\"\n  ")
         
-          s"""${libName}.${functionName}.argtypes = ${parameters}
-${libName}.${functionName}.restype = ${escape(TypeHelper.typeToAbi(function.returnType))}
+          s"""${libName}.${calledFunction}.argtypes = ${parameters}
+${libName}.${calledFunction}.restype = ${escape(TypeHelper.typeToAbi(function.returnType))}
 def ${functionName}(${function.parameters.map(p => s"""${p.name}: ${{TypeHelper.typeToPythonIndication(p.tpe)}}""").mkString(", ")}) -> ${{TypeHelper.typeToPythonIndication(function.returnType)}}:
   ${comment}return ${libName}.${calledFunction}(${function.parameters.map(_.name).mkString(", ")})
 """
       }
 
-    val globalUpdate = s"""globals().update({
-  ${functions.map(f => 
-      s""""${f.name}": ${f.name},"""
-    ).mkString("\n  ")}
-})"""
+//     val globalUpdate = s"""globals().update({
+//   ${functions.map(f => 
+//       s""""${f.name}": ${f.name},"""
+//     ).mkString("\n  ")}
+// })"""
 
-    s"""
-#
+    s"""#
 # AUTO-GENERATED FILE
 # Please do not modify this file.
 #
@@ -166,20 +157,20 @@ import sys
 from pathlib import Path
 from typing import Any
 
-def _library_name():
-    if sys.platform == "linux":
-        return "libexample.so"
+def __library_name():
+  if sys.platform == "linux":
+    return "libexample.so"
 
-    if sys.platform == "darwin":
-        return "libexample.dylib"
+  if sys.platform == "darwin":
+    return "libexample.dylib"
 
-    if sys.platform == "win32":
-        return "example.dll"
+  if sys.platform == "win32":
+    return "example.dll"
 
-    raise RuntimeError(f"Unsupported platform: {sys.platform}")
+  raise RuntimeError(f"Unsupported platform: {sys.platform}")
 
-_library_path = Path(__file__).parent / _library_name()
-${libName} = ctypes.CDLL(str(_library_path))
+__library_path = Path(__file__).parent / __library_name()
+${libName} = ctypes.CDLL(str(__library_path))
 
 ${functionEntries.mkString("\n\n")}"""
 
@@ -188,7 +179,6 @@ ${functionEntries.mkString("\n\n")}"""
       .replace("\\", "\\\\")
       .replace("\"", "\\\"")
 
-
 case class FunctionParameter(
     name: String,
     tpe: Type
@@ -196,10 +186,13 @@ case class FunctionParameter(
 
 case class ExportedFunction(
     name: String,
-    // name: Symbol,
     parameters: List[FunctionParameter],
     returnType: Type,
     comment: Option[Comment],
-    hasSibling: Boolean
+
+    siblingModel: Option[ExportedSiblingFunction]
+
+    // name: Symbol,
+    // hasSibling: Boolean
     // symbol: Symbol
 )

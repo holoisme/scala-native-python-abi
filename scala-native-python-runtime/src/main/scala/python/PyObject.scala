@@ -6,6 +6,8 @@ opaque type PyObject = CVoidPtr
 
 object PyObject:
 
+  def Null: PyObject = null
+
   def fromPtr(ptr: CVoidPtr): PyObject =
     ptr
 

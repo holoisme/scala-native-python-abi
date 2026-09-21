@@ -4,7 +4,19 @@ print(example.add(100, 2))
 
 example.hello()
 
-print(example.first([11, 20, 30]))
+print(example.first([111, 222, 333]))
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Each GC does its own thing, and calls INCREF DECREF functions when the wrapper object is freed
 

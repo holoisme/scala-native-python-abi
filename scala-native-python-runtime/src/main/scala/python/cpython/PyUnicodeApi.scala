@@ -8,6 +8,10 @@ import scala.scalanative.unsigned.*
 @extern
 object PyUnicodeApi:
 
+  def PyUnicode_FromString(
+      str: CString
+  ): PyObject = extern
+
   def PyUnicode_FromStringAndSize(
       str: CString,
       size: CSSize

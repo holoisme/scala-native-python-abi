@@ -24,7 +24,7 @@ class ScalaNativePythonAbiPlugin extends StandardPlugin:
 
   override val description: String = "Generates Python ABI from Scala Native @exported items"
 
-  val functionsWithSiblings = mutable.ListBuffer.empty[Symbol]
+  val exportedFunctions = mutable.ListBuffer.empty[ExportedSiblingFunction]
 
   override def init(options: List[String]): List[PluginPhase] =
     val outputDirectory =
@@ -37,6 +37,6 @@ class ScalaNativePythonAbiPlugin extends StandardPlugin:
 
     // val siblingPhaseOutput = 
     List(
-      new SiblingPhase(functionsWithSiblings),
-      new PythonInitPhase(outputDirectory, functionsWithSiblings),
+      new SiblingPhase(exportedFunctions),
+      new PythonInitPhase(outputDirectory, exportedFunctions),
     )

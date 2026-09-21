@@ -14,8 +14,8 @@ object PyClass:
     def asObject: PyObject =
       cls
 
-    def apply(): PyObject =
-      PyObjectApi.PyObject_CallNoArgs(cls)
+    // def apply(): PyObject =
+    //   PyObjectApi.PyObject_CallNoArgs(cls)
 
-    def apply(arg: PyObject): PyObject =
-      PyObjectApi.PyObject_CallOneArg(cls, arg)
+    // def apply(arg: PyObject): PyObject =
+    //   PyObjectApi.PyObject_CallOneArg(cls, arg)
