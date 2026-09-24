@@ -5,6 +5,7 @@ import dotty.tools.dotc.core.Annotations.Annotation
 import dotty.tools.dotc.core.Comments.Comment
 import dotty.tools.dotc.core.Constants.Constant
 import dotty.tools.dotc.core.Contexts.Context
+import dotty.tools.dotc.core.Flags
 import dotty.tools.dotc.core.Symbols.*
 import dotty.tools.dotc.core.Types.*
 import dotty.tools.dotc.plugins.PluginPhase
@@ -40,8 +41,10 @@ class SiblingPhase(exportedFunctions: ListBuffer[ExportedSiblingFunction]) exten
                 defDef.symbol.annotations.find { annotation =>
                     annotation.symbol.fullName.toString == exportedAnnotation
                 }.isDefined
-              
-              if(isExported)
+
+              val isPrivate = defDef.symbol.isPrivate || defDef.symbol.privateWithin.exists
+
+              if(isExported || isPrivate)
                 List(defDef)
               else
                 makeSibling(defDef) match

@@ -6,38 +6,31 @@ example.hello()
 
 print(example.first([111, 222, 333]))
 
+name = example.getName()
 
-
-
-
-
-
-
-
-
-
+print(name)
 
 
 # Each GC does its own thing, and calls INCREF DECREF functions when the wrapper object is freed
 
+class Person:
+    def __init__(self, first_name, last_name, age):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.age = age
 
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+    
+    def set_age(self, age):
+        self.age = age
 
-# class Person:
-#     def __init__(self, name):
-#         self.name = name
+    def say(self, sentence):
+        print(f"{self.first_name}: {sentence}")
 
-#     # def greet(self, message):
-#     #     return f"{message}, {self.name}"
+p = Person("Youssef", "Laraki", 21)
 
-#     def greet(self):
-#         return f"{self.name}"
-
-#     def age(self):
-#         return 42
-
-# p = Person("Holo")
-
-# example.greet_person(p)
+example.present(p)
 
 # example.my_print("Hello, world! Yes")
 # example.print_first(["hello", "world"])

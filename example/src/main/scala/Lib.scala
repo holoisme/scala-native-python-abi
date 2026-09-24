@@ -13,7 +13,7 @@ def add(a: Int, b: Int): Int =
 def multiply(a: Double, b: Double): Double =
   a * b
 
-def print_all(list: List[Int]): Unit =
+def print_all(list: Seq[Int]): Unit =
   for (i <- list) {
     println(i)
   }
@@ -36,17 +36,29 @@ def first(xs: PyList[Int]): Int =
   println(xs.toSeq)
   xs(0)
 
-
-def my_print(x: PyString): Unit =
-  println(s"${x.asString}")
-
 def print_first(xs: PyList[String]): Unit =
-  // xs.toSeq.toList.map(_.length)
   println(s"${xs(0)}")
 
 def hello(): Unit =
   println("Hello everyone!")
 
-def greet_person(p: PyInstance): Unit =
-  // val 
-  p.call("greet")
+def present(p: PyInstance): Unit =
+  val fullName = p.call("full_name").asString
+  val age = p.field("age").asInt
+  
+  p.call("say", Seq(PyString(s"Hello! My name is ${fullName} and I'm ${age}yo").asObject))
+
+  // println(s"Hello! My name is ${fullName} and I'm ${age}yo")
+
+  p.setField("age", PyObject.fromInt(age + 1))
+  println(s"Happy birthday! ${fullName} is ${p.field("age").asInt} now.")
+
+  // val newAge = PyObject.fromInt(age + 1)
+  // p.call("set_age", Seq(newAge))
+  // val age2 = p.field("age").asInt
+  // println(s"Actually I'm ${age2}yo")
+  // PyObjectApi.Py_DecRef(newAge)
+  
+
+def getName(): PyString =
+  PyString("Bob")

@@ -12,6 +12,12 @@ object PyObjectApi:
       attrName: CString
   ): PyObject = extern
 
+  def PyObject_SetAttrString(
+      obj: PyObject,
+      attrName: CString,
+      value: PyObject
+  ): CInt = extern
+
   def PyObject_CallNoArgs(
       callable: PyObject
   ): PyObject = extern
@@ -59,3 +65,4 @@ object PyObjectApi:
       args: PyObject,
       kwargs: PyObject
   ): PyObject = extern
+  

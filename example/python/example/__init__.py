@@ -21,7 +21,7 @@ def __library_name():
   raise RuntimeError(f"Unsupported platform: {sys.platform}")
 
 __library_path = Path(__file__).parent / __library_name()
-__lib = ctypes.CDLL(str(__library_path))
+__lib = ctypes.PyDLL(str(__library_path))
 
 __lib.add__abi.argtypes = [ctypes.c_int32, ctypes.c_int32]
 __lib.add__abi.restype = ctypes.c_int32
@@ -72,12 +72,6 @@ def first(xs: Any) -> int:
   return __lib.first__abi(xs)
 
 
-__lib.my_print__abi.argtypes = [ctypes.py_object]
-__lib.my_print__abi.restype = None
-def my_print(x: Any) -> None:
-  return __lib.my_print__abi(x)
-
-
 __lib.print_first__abi.argtypes = [ctypes.py_object]
 __lib.print_first__abi.restype = None
 def print_first(xs: Any) -> None:
@@ -90,7 +84,13 @@ def hello() -> None:
   return __lib.hello__abi()
 
 
-__lib.greet_person__abi.argtypes = [ctypes.py_object]
-__lib.greet_person__abi.restype = None
-def greet_person(p: Any) -> None:
-  return __lib.greet_person__abi(p)
+__lib.present__abi.argtypes = [ctypes.py_object]
+__lib.present__abi.restype = None
+def present(p: Any) -> None:
+  return __lib.present__abi(p)
+
+
+__lib.getName__abi.argtypes = []
+__lib.getName__abi.restype = ctypes.py_object
+def getName() -> Any:
+  return __lib.getName__abi()

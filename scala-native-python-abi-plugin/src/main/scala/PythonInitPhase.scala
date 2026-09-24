@@ -120,7 +120,7 @@ class PythonInitPhase(outputDirectory: String, exportedFunctions: ListBuffer[Exp
     Files.writeString(file, loader, StandardCharsets.UTF_8)
 
   private def renderPythonLoader(functions: List[ExportedFunction])(using ctx: Context): String =
-    val libName = "__lib"
+    val lib = "__lib"
 
     val functionEntries =
       functions.map { function =>
@@ -134,18 +134,12 @@ class PythonInitPhase(outputDirectory: String, exportedFunctions: ListBuffer[Exp
           case None => ""
           case Some(s) => "\"\"\"\n  " + s.raw.linesIterator.map(s => "  " + s.trim().stripPrefix("/**").stripPrefix("*/").stripPrefix("*").trim()).mkString("\n").trim() + "\n  \"\"\"\n  " //.mkString("\"\"\"\n", "\n", "\n\"\"\"\n  ")
         
-          s"""${libName}.${calledFunction}.argtypes = ${parameters}
-${libName}.${calledFunction}.restype = ${escape(TypeHelper.typeToAbi(function.returnType))}
+          s"""${lib}.${calledFunction}.argtypes = ${parameters}
+${lib}.${calledFunction}.restype = ${TypeHelper.typeToAbi(function.returnType)}
 def ${functionName}(${function.parameters.map(p => s"""${p.name}: ${{TypeHelper.typeToPythonIndication(p.tpe)}}""").mkString(", ")}) -> ${{TypeHelper.typeToPythonIndication(function.returnType)}}:
-  ${comment}return ${libName}.${calledFunction}(${function.parameters.map(_.name).mkString(", ")})
+  ${comment}return ${lib}.${calledFunction}(${function.parameters.map(_.name).mkString(", ")})
 """
       }
-
-//     val globalUpdate = s"""globals().update({
-//   ${functions.map(f => 
-//       s""""${f.name}": ${f.name},"""
-//     ).mkString("\n  ")}
-// })"""
 
     s"""#
 # AUTO-GENERATED FILE
@@ -170,7 +164,7 @@ def __library_name():
   raise RuntimeError(f"Unsupported platform: {sys.platform}")
 
 __library_path = Path(__file__).parent / __library_name()
-${libName} = ctypes.CDLL(str(__library_path))
+${lib} = ctypes.PyDLL(str(__library_path))
 
 ${functionEntries.mkString("\n\n")}"""
 

@@ -3,6 +3,7 @@ package python
 import python.cpython.PyObjectApi
 import python.cpython.PyUnicodeApi
 
+import scala.language.dynamics
 import scala.scalanative.unsafe.*
 // import scala.scalanative.unsafe.Size.intToSize
 import scala.scalanative.unsigned.UnsignedRichInt
@@ -10,11 +11,6 @@ import scala.scalanative.unsigned.UnsignedRichInt
 opaque type PyInstance = PyObject
 
 object PyInstance:
-
-  // private val PyVectorcallArgumentsOffset: CSize =
-  // (1.toULong << (8 * sizeof[CSize] - 1)).toCSize
-
-  private val PyVectorcallArgumentsOffset: CSize = (1.toULong << 63).toUSize
 
   def fromObject(obj: PyObject): PyInstance =
     obj
@@ -31,32 +27,87 @@ object PyInstance:
 
     def asObject: PyObject =
       obj
+    
+    def call(methodName: String): PyObject =
+      call(methodName, Seq())
 
-    def call(method: String): PyObject =
+    def call(methodName: String, args: Seq[PyObject]): PyObject =
       Zone:
-        println(s"Calling \"${method}\"...")
-        val name = methodName(method)// PyUnicodeApi.PyUnicode_FromString(toCString(method))
+        val name = PyUnicodeApi.PyUnicode_FromString(toCString(methodName))
 
-        println("Created name")
+        if name.ptr == null then
+          PyObject.Null
+        else
+          val argv = stackalloc[CVoidPtr](args.length + 1)
 
-        val args = stackalloc[CVoidPtr](1)
-        args(0) = obj.ptr
+          argv(0) = obj.ptr
 
-        println("Created stackalloc, calling vector call...")
+          var i = 0
+          while i < args.length do
+            argv(i + 1) = args(i).ptr
+            i += 1
 
-        val result =
-          PyObjectApi.PyObject_VectorcallMethod(
-            name,
-            args,
-            1.toUSize | PyVectorcallArgumentsOffset/*PY_VECTORCALL_ARGUMENTS_OFFSET*/,
-            PyObject.Null
-          )
+          val result = PyObjectApi.PyObject_VectorcallMethod(
+              name,
+              argv,
+              (args.length + 1).toCSize,
+              PyObject.Null
+            )
 
-        println("Return from PyObject_VectorcallMethod")
+          PyObjectApi.Py_DecRef(name)
 
-        PyObjectApi.Py_DecRef(name)
+          result
+      
+    def field(fieldName: String): PyObject =
+      Zone:
+        PyObjectApi.PyObject_GetAttrString(
+          obj,
+          toCString(fieldName)
+        )
 
-        result
+    def setField(fieldName: String, value: PyObject): Boolean =
+        Zone:
+          val result =
+            PyObjectApi.PyObject_SetAttrString(
+              obj,
+              toCString(fieldName),
+              value
+            )
+
+          result == 0
+    
+    // def applyDynamic(name: String)(args: Any*): PyObject =
+    //   // convert args -> PyObject
+    //   // call Python method
+    //   ???
+
+    // def selectDynamic(name: String): PyObject = field(name)
+    
+    // def call(method: String): PyObject =
+    //   Zone:
+    //     println(s"Calling \"${method}\"...")
+    //     val name = methodName(method)// PyUnicodeApi.PyUnicode_FromString(toCString(method))
+
+    //     println("Created name")
+
+    //     val args = stackalloc[CVoidPtr](1)
+    //     args(0) = obj.ptr
+
+    //     println("Created stackalloc, calling vector call...")
+
+    //     val result =
+    //       PyObjectApi.PyObject_VectorcallMethod(
+    //         name,
+    //         args,
+    //         1.toUSize | PyVectorcallArgumentsOffset/*PY_VECTORCALL_ARGUMENTS_OFFSET*/,
+    //         PyObject.Null
+    //       )
+
+    //     println("Return from PyObject_VectorcallMethod")
+
+    //     PyObjectApi.Py_DecRef(name)
+
+    //     result
         // val c = toCString(method)
         // val name = PyUnicodeApi.PyUnicode_FromString(c)
 
