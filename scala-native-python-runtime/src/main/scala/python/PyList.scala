@@ -4,6 +4,7 @@ import python.cpython.PyListApi
 
 import scala.collection.AbstractSeq
 
+@feature("PyList")
 opaque type PyList[T] = PyObject
 
 object PyList:
@@ -19,7 +20,7 @@ object PyList:
     def length: Int =
       PyListApi.PyList_Size(list).toInt
 
-    inline def apply(index: Int)(using element: PyListElement[T]): T =
+    inline def apply(index: Int)(using element: PyElement[T]): T =
       element.fromPyObject(
         PyListApi.PyList_GetItem(list, index)
       )
@@ -27,7 +28,7 @@ object PyList:
     def isValid: Boolean =
       PyListApi.PyList_Check(list) != 0
     
-    def map[U](f: T => U)(using element: PyListElement[T]): Seq[U] =
+    def map[U](f: T => U)(using element: PyElement[T]): Seq[U] =
       val n = list.length
       val builder = Seq.newBuilder[U]
 
@@ -38,30 +39,18 @@ object PyList:
 
       builder.result()
 
-    // def toSeq()(using PyListElement[T]): Seq[T] = PyListWrapper(list)
-    def toSeq(using PyListElement[T]): Seq[T] = PyListWrapper(list)
-
-    // def toSeq()(using element: PyListElement[T]): Seq[T] =
-    //   val n = list.length
-    //   val builder = Seq.newBuilder[T]
-
-    //   var i = 0
-    //   while i < n do
-    //     builder += list(i)
-    //     i += 1
-
-    //   builder.result()
+    def toSeq(using PyElement[T]): Seq[T] = PyListWrapper(list)
 
 final class PyListWrapper[T](
-    private val pyList: PyList[T]
-)(using PyListElement[T])
+    private val inner: PyList[T]
+)(using PyElement[T])
     extends scala.collection.immutable.AbstractSeq[T]:
 
   override def length: Int =
-    pyList.length
+    inner.length
 
   override def apply(index: Int): T =
-    pyList(index)
+    inner(index)
 
   override def iterator: Iterator[T] =
     new Iterator[T]:
@@ -77,3 +66,16 @@ final class PyListWrapper[T](
         val value = PyListWrapper.this(index)
         index += 1
         value
+
+
+    // def toSeq()(using PyListElement[T]): Seq[T] = PyListWrapper(list)
+    // def toSeq()(using element: PyListElement[T]): Seq[T] =
+    //   val n = list.length
+    //   val builder = Seq.newBuilder[T]
+
+    //   var i = 0
+    //   while i < n do
+    //     builder += list(i)
+    //     i += 1
+
+    //   builder.result()

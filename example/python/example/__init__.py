@@ -23,6 +23,12 @@ def __library_name():
 __library_path = Path(__file__).parent / __library_name()
 __lib = ctypes.PyDLL(str(__library_path))
 
+__lib.hello__abi.argtypes = []
+__lib.hello__abi.restype = None
+def hello() -> None:
+  return __lib.hello__abi()
+
+
 __lib.add__abi.argtypes = [ctypes.c_int32, ctypes.c_int32]
 __lib.add__abi.restype = ctypes.c_int32
 def add(a: int, b: int) -> int:
@@ -33,6 +39,10 @@ def add(a: int, b: int) -> int:
   @param b second number
   @return the sum
   """
+  if a < -2147483648 or a > 2147483647:
+    raise ValueError(f'argument a of type int (-2147483648 -> 2147483647) is out of bounds ({a})')
+  if b < -2147483648 or b > 2147483647:
+    raise ValueError(f'argument b of type int (-2147483648 -> 2147483647) is out of bounds ({b})')
   return __lib.add__abi(a, b)
 
 
@@ -76,12 +86,6 @@ __lib.print_first__abi.argtypes = [ctypes.py_object]
 __lib.print_first__abi.restype = None
 def print_first(xs: Any) -> None:
   return __lib.print_first__abi(xs)
-
-
-__lib.hello__abi.argtypes = []
-__lib.hello__abi.restype = None
-def hello() -> None:
-  return __lib.hello__abi()
 
 
 __lib.present__abi.argtypes = [ctypes.py_object]

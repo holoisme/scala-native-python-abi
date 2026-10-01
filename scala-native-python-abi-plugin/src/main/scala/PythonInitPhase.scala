@@ -53,22 +53,13 @@ class PythonInitPhase(outputDirectory: String, exportedFunctions: ListBuffer[Exp
     units
 
   private def inspectDefDef(tree: DefDef)(using ctx: Context): Unit =
-    val symbol = tree.symbol
-
-    // println("")
-    // println(tree.symbol.show)
-    // println(tree.symbol.annotations.map(_.symbol.fullName))
-
-    val annotation =
-      symbol.annotations.find { annotation =>
-        annotation.symbol.fullName.toString == exportedAnnotation
-      }
-
-    annotation.foreach { ann =>
-      extractExportedFunction(tree, ann)
-    }
-
+    tree.symbol.annotations.find { _.symbol.fullName.toString == exportedAnnotation } match
+      case Some(ann) => extractExportedFunction(tree, ann)
+      case None => ()
+  
   private def extractExportedFunction(tree: DefDef, annotation: Annotation)(using ctx: Context): Unit =
+    println(s"${tree.name.show} is exported")
+
     val exportName =
       extractExportName(tree, annotation).getOrElse {
         report.error(
@@ -77,10 +68,6 @@ class PythonInitPhase(outputDirectory: String, exportedFunctions: ListBuffer[Exp
         )
         return
       }
-
-    // val hasSibling = exportedFunctions.contains(tree.symbol)
-
-    // val 
 
     tree.symbol.info match
 
@@ -132,12 +119,14 @@ class PythonInitPhase(outputDirectory: String, exportedFunctions: ListBuffer[Exp
 
         val comment = function.comment match
           case None => ""
-          case Some(s) => "\"\"\"\n  " + s.raw.linesIterator.map(s => "  " + s.trim().stripPrefix("/**").stripPrefix("*/").stripPrefix("*").trim()).mkString("\n").trim() + "\n  \"\"\"\n  " //.mkString("\"\"\"\n", "\n", "\n\"\"\"\n  ")
+          case Some(s) => "  \"\"\"\n  " + s.raw.linesIterator.map(s => "  " + s.trim().stripPrefix("/**").stripPrefix("*/").stripPrefix("*").trim()).mkString("\n").trim() + "\n  \"\"\"\n"
         
+        val allChecks = function.parameters.map(p => TypeHelper.checkForType(p.tpe, p.name)).flatten.mkString("\n").indent(2)
+
           s"""${lib}.${calledFunction}.argtypes = ${parameters}
 ${lib}.${calledFunction}.restype = ${TypeHelper.typeToAbi(function.returnType)}
 def ${functionName}(${function.parameters.map(p => s"""${p.name}: ${{TypeHelper.typeToPythonIndication(p.tpe)}}""").mkString(", ")}) -> ${{TypeHelper.typeToPythonIndication(function.returnType)}}:
-  ${comment}return ${lib}.${calledFunction}(${function.parameters.map(_.name).mkString(", ")})
+${comment}${allChecks}  return ${lib}.${calledFunction}(${function.parameters.map(_.name).mkString(", ")})
 """
       }
 

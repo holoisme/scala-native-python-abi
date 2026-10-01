@@ -1,13 +1,15 @@
-import scala.scalanative.build.BuildTarget
+import scala.scalanative.build.*
 
 enablePlugins(ScalaNativePlugin)
 
-scalaVersion := "3.3.7"
+scalaVersion := "3.8.3"
 
 nativeConfig ~= { config =>
   config
     .withBuildTarget(BuildTarget.libraryDynamic)
     .withBaseName("example")
+    .withGC(GC.python)
+    .withPythonABI(true)
 }
 
 libraryDependencies +=

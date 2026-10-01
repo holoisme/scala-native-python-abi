@@ -7,6 +7,7 @@ import python.cpython.PyObjectApi
 import scala.scalanative.unsafe.CVoidPtr
 import scala.scalanative.unsafe.UnsafeRichInt
 
+@feature("PyObject")
 opaque type PyObject = CVoidPtr
 
 object PyObject:
@@ -42,5 +43,17 @@ object PyObject:
     def asDouble: Double =
       PyFloatApi.PyFloat_AsDouble(obj).toDouble
 
-    def decref: Unit =
+    def decref(): Unit =
       PyObjectApi.Py_DecRef(obj)
+
+extension (value: String)
+  def toPyString: PyString =
+    PyString(value)
+
+  def toPyObject: PyObject =
+    PyString(value).asObject
+
+extension (value: Int)
+  def toPyObject: PyObject =
+    PyLongApi.PyLong_FromLong(value.toSize)
+

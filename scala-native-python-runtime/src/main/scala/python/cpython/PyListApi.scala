@@ -3,7 +3,6 @@ package python.cpython
 import scala.scalanative.unsafe.*
 
 import python.PyObject
-import python.PyBorrowedObject
 
 @extern
 object PyListApi:
@@ -12,4 +11,4 @@ object PyListApi:
 
   def PyList_Size(list: PyObject): CSSize = extern
 
-  def PyList_GetItem(list: PyObject, index: CSSize): PyBorrowedObject = extern
+  def PyList_GetItem(list: PyObject, index: CSSize): PyObject = extern

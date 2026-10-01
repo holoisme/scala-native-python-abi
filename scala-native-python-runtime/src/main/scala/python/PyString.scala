@@ -5,6 +5,7 @@ import python.cpython.PyUnicodeApi
 import scala.scalanative.unsafe.*
 import scala.scalanative.unsigned.*
 
+@feature("PyString")
 opaque type PyString = PyObject
 
 object PyString:

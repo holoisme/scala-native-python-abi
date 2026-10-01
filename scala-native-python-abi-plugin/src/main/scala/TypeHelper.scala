@@ -30,3 +30,15 @@ object TypeHelper:
     else if tpe =:= defn.UnitType then "None"
     else "Any"
 
+  def boundCheck(arg: String, typeName: String, min: String, max: String): String =
+    s"if ${arg} < ${min} or ${arg} > ${max}:\n  raise ValueError(f'argument ${arg} of type ${typeName} (${min} -> ${max}) is out of bounds ({${arg}})')"
+
+  def checkForType(tpe: Type, arg: String)(using ctx: Context): Option[String] =
+    if tpe =:= defn.ByteType then Some(boundCheck(arg, "byte", s"${Byte.MinValue}", s"${Byte.MaxValue}"))
+    else if tpe =:= defn.ShortType then Some(boundCheck(arg, "short", s"${Short.MinValue}", s"${Short.MaxValue}"))
+    else if tpe =:= defn.IntType then Some(boundCheck(arg, "int", s"${Integer.MIN_VALUE}", s"${Integer.MAX_VALUE}"))
+    else if tpe =:= defn.LongType then Some(boundCheck(arg, "long", "(-2**63)", "(2**63) - 1"))
+    else if tpe =:= defn.FloatType then None // todo
+    else if tpe =:= defn.DoubleType then None // todo
+    else None
+

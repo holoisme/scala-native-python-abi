@@ -1,8 +1,17 @@
 import example
+# import gc
+
+# gc.disable()
+
+# example.workPlease(1)
+
+# example.hello()
+
+# x = example.instanciate()
+# print(x)
 
 print(example.add(100, 2))
 
-example.hello()
 
 print(example.first([111, 222, 333]))
 
@@ -10,8 +19,6 @@ name = example.getName()
 
 print(name)
 
-
-# Each GC does its own thing, and calls INCREF DECREF functions when the wrapper object is freed
 
 class Person:
     def __init__(self, first_name, last_name, age):
@@ -21,9 +28,6 @@ class Person:
 
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
-    
-    def set_age(self, age):
-        self.age = age
 
     def say(self, sentence):
         print(f"{self.first_name}: {sentence}")
@@ -31,6 +35,51 @@ class Person:
 p = Person("Youssef", "Laraki", 21)
 
 example.present(p)
+
+
+
+
+
+# class Animal:
+#     name: str
+#     species: str
+
+#     def __init__(self, name, species):
+#         self.__inner = 0 # Instanciate Scala class.
+
+#     # Other this() constructors:
+#     # def new(self, name):
+#     #     self.__inner = 0 # Instanciate Scala class.
+    
+#     def __call__(self, args, kwds):
+#         # apply()
+#         pass
+
+#     def __getattribute__(self, name):
+#         # Read field from __inner
+#         print(f"Accessing {name}")
+#         pass
+
+#     def __setattr__(self, name, value) -> None:
+#         # Set field in __inner
+#         pass
+
+#     def __del__(self):
+#         # Decrease reference count of __inner in Scala Native Object space
+
+#         return
+
+#     def present(self):
+#         # Call __inner.present
+#         pass
+
+# animal = Animal("felix", "cat")
+# print(animal.name)
+
+# animal.present()
+
+
+
 
 # example.my_print("Hello, world! Yes")
 # example.print_first(["hello", "world"])

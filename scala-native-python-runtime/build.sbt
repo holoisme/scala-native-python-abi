@@ -13,7 +13,7 @@ enablePlugins(ScalaNativePlugin)
 //       }
 //     )
 
-ThisBuild / scalaVersion := "3.3.7"
+ThisBuild / scalaVersion := "3.8.3"
 
 organization := "com.holo"
 name := "scala-native-python-runtime"

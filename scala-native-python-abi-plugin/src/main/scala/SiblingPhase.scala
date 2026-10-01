@@ -44,11 +44,12 @@ class SiblingPhase(exportedFunctions: ListBuffer[ExportedSiblingFunction]) exten
 
               val isPrivate = defDef.symbol.isPrivate || defDef.symbol.privateWithin.exists
 
-              if(isExported || isPrivate)
+              if(isExported || isPrivate || defDef.name.show.startsWith("_"))
                 List(defDef)
               else
                 makeSibling(defDef) match
                   case Some(sibling) => {
+                    println(s"${defDef.name.show} has a sibling")
                     exportedFunctions += ExportedSiblingFunction(defDef.name.show, defDef.symbol, sibling.name.show, sibling.symbol)
                     List(defDef, sibling)
                   }

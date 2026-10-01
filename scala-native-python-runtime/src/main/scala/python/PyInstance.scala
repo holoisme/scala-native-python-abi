@@ -8,6 +8,7 @@ import scala.scalanative.unsafe.*
 // import scala.scalanative.unsafe.Size.intToSize
 import scala.scalanative.unsigned.UnsignedRichInt
 
+@feature("PyInstance")
 opaque type PyInstance = PyObject
 
 object PyInstance:
@@ -15,23 +16,29 @@ object PyInstance:
   def fromObject(obj: PyObject): PyInstance =
     obj
 
-  def methodName(name: String): PyObject =
-    Zone:
-      val cstr = toCString(name)
-      PyUnicodeApi.PyUnicode_FromStringAndSize(
-        cstr,
-        name.getBytes("UTF-8").length.toCSSize
-      )
-
   extension (obj: PyInstance)
 
     def asObject: PyObject =
       obj
     
-    def call(methodName: String): PyObject =
-      call(methodName, Seq())
+    def call[A](methodName: String): PyObject =
+      callArbitrary(methodName)
 
-    def call(methodName: String, args: Seq[PyObject]): PyObject =
+    def call[A](methodName: String, a: A)(using elemA: PyElement[A]): PyObject =
+      val va = elemA.toPyObject(a)
+      val result = callArbitrary(methodName, va)
+      if elemA.needsImmediateCleanUp() then va.decref()
+      result
+
+    def call[A, B](methodName: String, a: A, b: B)(using elemA: PyElement[A])(using elemB: PyElement[B]): PyObject =
+      val va = elemA.toPyObject(a)
+      val vb = elemB.toPyObject(b)
+      val result = callArbitrary(methodName, va, vb)
+      if elemA.needsImmediateCleanUp() then va.decref()
+      if elemB.needsImmediateCleanUp() then vb.decref()
+      result
+
+    def callArbitrary(methodName: String, args: PyObject*): PyObject =
       Zone:
         val name = PyUnicodeApi.PyUnicode_FromString(toCString(methodName))
 
@@ -73,6 +80,21 @@ object PyInstance:
               toCString(fieldName),
               value
             )
+
+          result == 0
+
+    def setFieldNew[T](fieldName: String, value: T)(using element: PyElement[T]): Boolean =
+        Zone:
+          val obj = element.toPyObject(value)
+          val result =
+            PyObjectApi.PyObject_SetAttrString(
+              obj,
+              toCString(fieldName),
+              obj
+            )
+
+          if element.needsImmediateCleanUp() then
+            obj.decref()
 
           result == 0
     

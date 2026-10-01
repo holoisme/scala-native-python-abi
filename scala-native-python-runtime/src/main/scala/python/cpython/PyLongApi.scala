@@ -13,6 +13,3 @@ object PyLongApi:
 
   def PyLong_FromLong(value: CLong): PyObject = extern
 
-extension (value: Int)
-  def toPyObject: PyObject =
-    PyLongApi.PyLong_FromLong(value.toSize)
