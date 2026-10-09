@@ -65,4 +65,8 @@ object PyObjectApi:
       args: PyObject,
       kwargs: PyObject
   ): PyObject = extern
-  
+
+  def PyObject_GetItem(
+      obj: PyObject,
+      key: PyObject
+  ): PyObject = extern

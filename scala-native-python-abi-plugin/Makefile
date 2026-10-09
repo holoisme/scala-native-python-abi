@@ -1,4 +1,4 @@
 build:
-	sbt clean
-	sbt reload
+# 	sbt clean
+# 	sbt reload
 	sbt publishLocal

@@ -6,7 +6,18 @@
 import ctypes
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol, TypeVar
+
+T = TypeVar('T')
+C = TypeVar('C', covariant=True)
+
+class Array(list[T]):
+  pass
+
+class Option(Protocol[C]):
+  def get(self) -> C: ...
+  def is_some(self) -> bool: ...
+  def is_none(self) -> bool: ...
 
 def __library_name():
   if sys.platform == "linux":
@@ -27,6 +38,12 @@ __lib.hello__abi.argtypes = []
 __lib.hello__abi.restype = None
 def hello() -> None:
   return __lib.hello__abi()
+
+
+__lib.instanciate__abi.argtypes = []
+__lib.instanciate__abi.restype = ctypes.py_object
+def instanciate() -> Array[int]:
+  return __lib.instanciate__abi()
 
 
 __lib.add__abi.argtypes = [ctypes.c_int32, ctypes.c_int32]
@@ -94,7 +111,36 @@ def present(p: Any) -> None:
   return __lib.present__abi(p)
 
 
-__lib.getName__abi.argtypes = []
-__lib.getName__abi.restype = ctypes.py_object
-def getName() -> Any:
-  return __lib.getName__abi()
+__lib.getNamePlease__abi.argtypes = []
+__lib.getNamePlease__abi.restype = ctypes.py_object
+def getNamePlease() -> str:
+  return __lib.getNamePlease__abi()
+
+
+__lib.instanciate2__abi.argtypes = []
+__lib.instanciate2__abi.restype = ctypes.py_object
+def instanciate2() -> Any:
+  return __lib.instanciate2__abi()
+
+
+__lib.ex1__abi.argtypes = []
+__lib.ex1__abi.restype = ctypes.py_object
+def ex1() -> tuple[int, str]:
+  return __lib.ex1__abi()
+
+
+__lib.ex2__abi.argtypes = []
+__lib.ex2__abi.restype = ctypes.py_object
+def ex2() -> tuple[int, str, Any]:
+  return __lib.ex2__abi()
+
+
+__lib.safeDivide__abi.argtypes = [ctypes.c_int32, ctypes.c_int32]
+__lib.safeDivide__abi.restype = ctypes.py_object
+def safeDivide(a: int, b: int) -> Option[int]:
+  if a < -2147483648 or a > 2147483647:
+    raise ValueError(f'argument a of type int (-2147483648 -> 2147483647) is out of bounds ({a})')
+  if b < -2147483648 or b > 2147483647:
+    raise ValueError(f'argument b of type int (-2147483648 -> 2147483647) is out of bounds ({b})')
+  return __lib.safeDivide__abi(a, b)
+

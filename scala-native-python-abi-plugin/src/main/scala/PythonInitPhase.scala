@@ -56,7 +56,7 @@ class PythonInitPhase(outputDirectory: String, exportedFunctions: ListBuffer[Exp
     tree.symbol.annotations.find { _.symbol.fullName.toString == exportedAnnotation } match
       case Some(ann) => extractExportedFunction(tree, ann)
       case None => ()
-  
+
   private def extractExportedFunction(tree: DefDef, annotation: Annotation)(using ctx: Context): Unit =
     println(s"${tree.name.show} is exported")
 
@@ -73,7 +73,9 @@ class PythonInitPhase(outputDirectory: String, exportedFunctions: ListBuffer[Exp
 
       case methodType: MethodType =>
         val patametersName = tree.paramss.flatten.map(_.name.show)
-        val params = patametersName.zip(methodType.paramInfos).map((name, ty) => FunctionParameter(name, ty))
+        val params = patametersName.zip(
+          methodType.paramInfos
+        ).map((name, ty) => FunctionParameter(makePythonCompatibleName(name), ty))
 
         functions += ExportedFunction(exportName, params, methodType.resultType, tree.rawComment, exportedFunctions.find(_.siblingSymbol eq tree.symbol))
 
@@ -120,7 +122,7 @@ class PythonInitPhase(outputDirectory: String, exportedFunctions: ListBuffer[Exp
         val comment = function.comment match
           case None => ""
           case Some(s) => "  \"\"\"\n  " + s.raw.linesIterator.map(s => "  " + s.trim().stripPrefix("/**").stripPrefix("*/").stripPrefix("*").trim()).mkString("\n").trim() + "\n  \"\"\"\n"
-        
+
         val allChecks = function.parameters.map(p => TypeHelper.checkForType(p.tpe, p.name)).flatten.mkString("\n").indent(2)
 
           s"""${lib}.${calledFunction}.argtypes = ${parameters}
@@ -138,7 +140,23 @@ ${comment}${allChecks}  return ${lib}.${calledFunction}(${function.parameters.ma
 import ctypes
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol, TypeVar
+
+# T = TypeVar('T')
+# C = TypeVar('C', covariant=True)
+
+class Array[T](list[T]):
+  pass
+
+class Option[C]:
+  def __new__(cls, arg: C | None):
+    return createOption(arg)
+  def get(self) -> C: ...
+  def is_some(self) -> bool: ...
+  def is_none(self) -> bool: ...
+
+def createOption[T](arg: T | None) -> Option[T]:
+  return 0
 
 def __library_name():
   if sys.platform == "linux":
@@ -155,7 +173,17 @@ def __library_name():
 __library_path = Path(__file__).parent / __library_name()
 ${lib} = ctypes.PyDLL(str(__library_path))
 
-${functionEntries.mkString("\n\n")}"""
+${functionEntries.mkString("\n\n")}
+"""
+
+// # class Array(Protocol[T]):
+// #   def __getitem__(self, i: int) -> T: ...
+// #   def __setitem__(self, i: int, o: T): ...
+// #   def __len__(self) -> int: ...
+// class Option(Protocol[C]):
+//   def get(self) -> C: ...
+//   def is_some(self) -> bool: ...
+//   def is_none(self) -> bool: ...
 
   private def escape(value: String): String =
     value
@@ -179,3 +207,17 @@ case class ExportedFunction(
     // hasSibling: Boolean
     // symbol: Symbol
 )
+
+def makePythonCompatibleName(name: String): String =
+  val pythonKeywords = List(
+    "and", "as", "assert", "async", "await", "break",
+    "case", "class", "continue", "def", "del", "elif",
+    "else", "except", "False", "finally", "for", "from",
+    "global", "if", "import", "in", "is", "lambda",
+    "match", "None", "nonlocal", "not", "or", "pass",
+    "raise", "return", "True", "try", "while", "with", "yield",
+    "res"
+  )
+
+  if(pythonKeywords.contains(name)) s"${name}_"
+  else name

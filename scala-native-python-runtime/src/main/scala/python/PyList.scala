@@ -1,6 +1,7 @@
 package python
 
 import python.cpython.PyListApi
+import python.cpython.PyObjectApi
 
 import scala.collection.AbstractSeq
 
@@ -16,18 +17,19 @@ object PyList:
 
     def asObject: PyObject =
       list
-    
+
     def length: Int =
-      PyListApi.PyList_Size(list).toInt
+      PyListApi.PyObject_Length(list).toInt
 
     inline def apply(index: Int)(using element: PyElement[T]): T =
       element.fromPyObject(
-        PyListApi.PyList_GetItem(list, index)
+        // PyListApi.PyList_GetItem(list, index)
+        PyObjectApi.PyObject_GetItem(list, index.toPyObject)
       )
 
     def isValid: Boolean =
       PyListApi.PyList_Check(list) != 0
-    
+
     def map[U](f: T => U)(using element: PyElement[T]): Seq[U] =
       val n = list.length
       val builder = Seq.newBuilder[U]

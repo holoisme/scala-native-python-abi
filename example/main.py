@@ -1,4 +1,82 @@
 import example
+import numpy as np
+
+n = example.getNamePlease()
+
+print(n)
+
+
+# import pandas as pd
+# import matplotlib.pyplot as plt
+
+# x = example.safeDivide(1000, 0)
+
+# y = x
+# print(x.is_none())
+# print("PLease?")
+# print(y)
+
+# name = example.getNamePlease()
+# print(f"{name}v")
+
+# example.__lib.java_lang_Object_toString.argtypes = []
+# example.__lib.java_lang_Object_toString.restype = None
+# v = example.__lib.java_lang_Object_toString
+# print(dir(example.__lib))
+
+# p = example.Option(120)
+# print(p)
+
+# y = x + 1
+
+# print(x)
+
+# y = x.get()
+#
+# print(y)
+
+# arr = example.instanciate()
+#
+# print(len(arr)) # length query
+#
+# print(arr[0]) # indexing
+#
+# for i in arr: # iteration
+# 	print(i)
+#
+# av = np.average(arr)
+# print(av)
+#
+# narray = np.array([42, 1997, 2004])
+# example.print_all(narray)
+
+# data = {'Year': [2000, 2001, 2002, 2003],'Unemployment Rate': arr}
+# df = pd.DataFrame(data)
+
+# df = pd.DataFrame(arr)
+
+# df.plot(x='Year', y='Unemployment Rate', kind='line')
+# plt.show()
+
+# import psutil
+# import resource
+
+# process = psutil.Process()
+
+
+# for i in range(100):
+# 	x = example.instanciate()
+# 	m = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+# 	# print(f"{process.memory_info().rss} bytes")
+# 	print(f"{m} bytes")
+# 	print(x)
+
+# [a, b] = example.ex1()
+
+# x = example.instanciate2()
+# print(x)
+
+# import numpy as np
 # import gc
 
 # gc.disable()
@@ -7,37 +85,49 @@ import example
 
 # example.hello()
 
-# x = example.instanciate()
+# example.doCrash()
+
+
+# for i in x:
+# 	print(i)
 # print(x)
 
-print(example.add(100, 2))
+# print(len(x))
+# av = np.average(x)
+# print(x[0])
+# print(x[1])
+# print(x[2])
+# print(av)
+
+# a = [1, 2, 3]
+# b = a / 1;
+
+# for i in x:
+#     print(i)
+# print(len(x))
+# print(example.add(100, 2))
 
 
-print(example.first([111, 222, 333]))
+# print(example.first([111, 222, 333]))
 
-name = example.getName()
+# name = example.getName(12)
+# print(name)
 
-print(name)
+# class Person:
+#     def __init__(self, first_name, last_name, age):
+#         self.first_name = first_name
+#         self.last_name = last_name
+#         self.age = age
 
+#     def full_name(self):
+#         return f"{self.first_name} {self.last_name}"
 
-class Person:
-    def __init__(self, first_name, last_name, age):
-        self.first_name = first_name
-        self.last_name = last_name
-        self.age = age
+#     def say(self, sentence):
+#         print(f"{self.first_name}: {sentence}")
 
-    def full_name(self):
-        return f"{self.first_name} {self.last_name}"
+# p = Person("Youssef", "Laraki", 21)
 
-    def say(self, sentence):
-        print(f"{self.first_name}: {sentence}")
-
-p = Person("Youssef", "Laraki", 21)
-
-example.present(p)
-
-
-
+# example.present(p)
 
 
 # class Animal:
@@ -50,7 +140,7 @@ example.present(p)
 #     # Other this() constructors:
 #     # def new(self, name):
 #     #     self.__inner = 0 # Instanciate Scala class.
-    
+
 #     def __call__(self, args, kwds):
 #         # apply()
 #         pass

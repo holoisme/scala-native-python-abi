@@ -1,12 +1,17 @@
 import python.*
 
-import scala.scalanative.runtime.CharArray
-import scala.scalanative.unsafe.*
-import scala.scalanative.unsafe.UnsafeRichInt
-import scala.scalanative.unsigned.*
 
 def hello() =
   println("Hello, world!")
+
+
+def instanciate(): Array[Int] =
+  val arr = new Array[Int](4)
+  arr(0) = 0
+  arr(1) = 111
+  arr(2) = 222
+  arr(3) = 333
+  arr
 
 /**
  * Adds two numbers.
@@ -21,9 +26,11 @@ def add(a: Int, b: Int): Int =
 def multiply(a: Double, b: Double): Double =
   a * b
 
-def print_all(list: Seq[Int]): Unit =
-  for (i <- list) {
-    println(i)
+def print_all(list: PyList[Int]): Unit =
+  var index = 0
+  while(index < list.length) {
+    println(list(index))
+    index += 1
   }
 
 def sum(xs: PyList[Int]): Int =
@@ -48,16 +55,39 @@ def print_first(xs: PyList[String]): Unit =
 def present(p: PyInstance): Unit =
   val fullName = p.call("full_name").asString
   val age = p.field("age").asInt
-  
+
   p.call("say", s"Hello! My name is ${fullName} and I'm ${age}yo")
-  
+
   p.setField("age", (age + 1).toPyObject)
   println(s"Happy birthday! ${fullName} is ${p.field("age").asInt} now.")
 
 
-def getName(): PyString =
-  PyString("Bob")
+def getNamePlease(): String =
+  "Bob"
 
+def instanciate2(): Object =
+  Seq(1, 2, 3)
+
+def ex1(): (Int, String) =
+  (12, "hello")
+
+def ex2(): (Int, String, MyAnimal) =
+  (12, "hello", MyAnimal(317))
+
+class MyAnimal(val x: Int) {
+  def _present(): Unit = println(x)
+}
+
+def safeDivide(a: Int, b: Int): Option[Int] =
+  if b != 0 then Some(a / b)
+  else None
+
+// def doCrash() =
+//   throw IllegalArgumentException("Hello this is an error")
+  // try
+  // catch {
+  //   case _: Throwable => println("en fait ça va")
+  // }
 
 
 // class Animal(name: String, species: String):
@@ -164,7 +194,7 @@ def getName(): PyString =
 //     } else if (!_to.isInstanceOf[Array[?]]) {
 //       throw new IllegalArgumentException("to argument must be an array")
 //     } else {
-      
+
 //     }
 // }
 
@@ -234,7 +264,7 @@ def getName(): PyString =
 
 
 // class Foo(val x: Int, val y: Int, val z: Int, val w: Int) {
-  
+
 // }
 
 // def instanciate() =

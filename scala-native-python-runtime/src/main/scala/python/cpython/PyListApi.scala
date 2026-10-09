@@ -12,3 +12,5 @@ object PyListApi:
   def PyList_Size(list: PyObject): CSSize = extern
 
   def PyList_GetItem(list: PyObject, index: CSSize): PyObject = extern
+
+  def PyObject_Length(list: PyObject): CSSize = extern
